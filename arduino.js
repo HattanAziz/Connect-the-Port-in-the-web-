@@ -1,45 +1,49 @@
+var speechRecognition = window.webkitSpeechRecognition
 
-      let isConnectted = false;
-      let port;
-      let writer;
-      var target_id;
-      const enc = new TextEncoder();
+var recognition = new speechRecognition()
+ 
+recognition.lang="ar";
 
-      async function onChangespeech() {
-        if (!isConnectted) {
-          alert("you must connect to the usb in order to use this.");
-          return;
-        }
-       
-        try {
-          const commandlist = content;
-          const commandSplit = commandlist.split(" ")
-          const command = commandSplit.slice(-1);
-          const computerText = `${command}@`;
-          await writer.write(enc.encode(computerText));
-        } catch (e) {
-          console.log(e);
-        }
-      }
-    
-      
+var textbox = $("#textbox")
 
-    async function onConnectUsb() {
-      try {
-        const requestOptions = {
-          // Filter on devices with the Arduino USB vendor ID.
-          filters: [{ usbVendorId: 0x2341 }],
-        };
+var insturctions = $("#insturctions")
+// empty 
+var content = ''
+// if the recording start then recognise the audio to convert it 
+recognition.continuos = true 
 
-        // Request an Arduino from the user.
-        port = await navigator.serial.requestPort(requestOptions);
-        await port.open({ baudRate: 115200 });
-        writer = port.writable.getWriter();
-        isConnectted = true;
-      } catch (e) {
-        console.log("err", e);
-      }
+
+recognition.onstart = function() {
+    insturctions.text("voice recognition is on ")
+}
+
+// if there is no speech ant more the function will stop 
+recognition.onspeechend = function() {
+    insturctions.text("No Activity ")
+}
+
+// if an error occured an error message should appear 
+recognition.onerror = function(){
+    insturctions.text("try again")
+}
+
+//while recording the audio 
+recognition.onresult = function (event) {
+    var current = event.resultIndex;
+
+    var transcript = event.results[current][0].transcript
+
+    content += transcript 
+
+    textbox.val(content)
+}
+
+//main function 
+$("#start-btn").click(function(event){
+    if (content.length){
+        content+= ''
     }
+    recognition.start() 
 
-    
+})
   
